@@ -4,6 +4,9 @@ import { Bricolage_Grotesque } from 'next/font/google'
 import { Space_Mono } from 'next/font/google'
 import { cn } from '@/lib/utils'
 import './globals.css'
+import getStripe from '@/utils/get-stripe'
+import { SignedIn, SignedOut, UserButton } from '@clerk/nextjs'
+import { ClerkProvider } from "@clerk/nextjs";
 
 const fontHeading = Bricolage_Grotesque({
   subsets: ['latin'],
@@ -19,17 +22,19 @@ const fontBody = Space_Mono({
 })
 
 export default function Layout({ children }) {
-  return (
-    <html lang="en">
-      <body 
-        className={cn(
-          'antialiased',
-          fontHeading.variable,
-          fontBody.variable
-        )}
-      >
-        {children}
-      </body>
-    </html>
-  )
-}
+    return (
+      <ClerkProvider>
+        <html lang="en">
+          <body 
+            className={cn(
+              'antialiased',
+              fontHeading.variable,
+              fontBody.variable
+            )}
+          >
+            {children}
+          </body>
+        </html>
+      </ClerkProvider>
+    );
+  }

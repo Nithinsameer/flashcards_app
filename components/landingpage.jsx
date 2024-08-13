@@ -8,6 +8,14 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter }
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
+import {
+  ClerkProvider,
+  SignedIn,
+  SignedOut,
+  SignInButton,
+  UserButton,
+} from "@clerk/nextjs";
+
 
 export default function Component() {
   return (
@@ -21,15 +29,20 @@ export default function Component() {
           <Link href="#" className="text-sm font-medium hover:underline underline-offset-4" prefetch={false}>
             Features
           </Link>
-          <Link href="#" className="text-sm font-medium hover:underline underline-offset-4" prefetch={false}>
+          <Link href="#pricing" className="text-sm font-medium hover:underline underline-offset-4" prefetch={false}>
             Pricing
           </Link>
-          <Link href="#" className="text-sm font-medium hover:underline underline-offset-4" prefetch={false}>
-            Login
-          </Link>
-          <Link href="#" className="text-sm font-medium hover:underline underline-offset-4" prefetch={false}>
-            Sign Up
-          </Link>
+          <SignedIn>
+            <UserButton />
+          </SignedIn>
+          <SignedOut>
+            <Link href="/sign-in" className="text-sm font-medium hover:underline underline-offset-4" prefetch={false}>
+              Login
+            </Link>
+            <Link href="/sign-up" className="text-sm font-medium hover:underline underline-offset-4" prefetch={false}>
+              Sign Up
+            </Link>
+          </SignedOut>
         </nav>
       </header>
       <main className="flex-1">
@@ -64,7 +77,7 @@ export default function Component() {
                 </div>
               </div>
               <img
-                src="../app/images/Flashcards.png"
+                src="/Flashcards.png"
                 width="550"
                 height="550"
                 alt="Hero"
@@ -138,7 +151,7 @@ export default function Component() {
                 <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl">Pricing</h2>
                 <p className="text-muted-foreground md:text-xl">Choose the plan that fits your needs.</p>
               </div>
-              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-2">
                 <Card className="flex flex-col items-center">
                   <CardHeader>
                     <CardTitle>Free</CardTitle>
@@ -191,7 +204,7 @@ export default function Component() {
                     <Button className="w-full">Get Pro</Button>
                   </CardFooter>
                 </Card>
-                <Card className="flex flex-col items-center">
+                {/* <Card className="flex flex-col items-center">
                   <CardHeader>
                     <CardTitle>Team</CardTitle>
                     <CardDescription>Collaborate with your team and boost productivity.</CardDescription>
@@ -224,7 +237,7 @@ export default function Component() {
                   <CardFooter>
                     <Button className="w-full">Get Team</Button>
                   </CardFooter>
-                </Card>
+                </Card> */}
               </div>
             </div>
           </div>

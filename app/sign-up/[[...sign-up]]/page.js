@@ -32,7 +32,9 @@ export default function SignUpPage () {
                 <p className="text-muted-foreground md:text-xl">Get started with our flashcards app today.</p>
               </div>
               <Link href='/signup' passHref>
-                <SignUp />
+                <SignUp 
+                     afterSignInUrl="/dashboard"
+                     redirectUrl="/dashboard"/>
               </Link>
             </div>
           </div>

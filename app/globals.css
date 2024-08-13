@@ -80,3 +80,7 @@
   word-wrap: break-word;
   hyphens: auto;
 }
+
+html {
+  scroll-behavior: smooth;
+}

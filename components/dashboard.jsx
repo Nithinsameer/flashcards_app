@@ -6,6 +6,7 @@
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
+import { SignedIn, UserButton } from "@clerk/nextjs"
 
 export default function Dashboard() {
   return (
@@ -19,11 +20,16 @@ export default function Dashboard() {
               <SearchIcon className="w-5 h-5 text-muted-foreground" />
             </div>
           </div>
-          <Button>
+        <Link href="/generate">
+          <Button >
             <PlusIcon className="w-5 h-5 mr-2" />
             New Deck
           </Button>
+          </Link>
         </div>
+        <SignedIn>
+            <UserButton />
+        </SignedIn>
       </header>
       <div className="flex-1 p-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
         {[

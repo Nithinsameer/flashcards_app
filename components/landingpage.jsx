@@ -29,9 +29,9 @@ export default function Component() {
           <Link href="#" className="text-sm font-medium hover:underline underline-offset-4" prefetch={false}>
             Features
           </Link>
-          <Link href="#pricing" className="text-sm font-medium hover:underline underline-offset-4" prefetch={false}>
+          {/* <Link href="#pricing" className="text-sm font-medium hover:underline underline-offset-4" prefetch={false}>
             Pricing
-          </Link>
+          </Link> */}
           <SignedIn>
             <UserButton />
           </SignedIn>
@@ -61,14 +61,14 @@ export default function Component() {
                 </div>
                 <div className="flex flex-col gap-2 min-[400px]:flex-row">
                   <Link
-                    href="#"
+                    href="/sign-up"
                     className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-8 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
                     prefetch={false}
                   >
                     Get Started
                   </Link>
                   <Link
-                    href="#"
+                    href="#pricing"
                     className="inline-flex h-10 items-center justify-center rounded-md border border-input bg-background px-8 text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
                     prefetch={false}
                   >

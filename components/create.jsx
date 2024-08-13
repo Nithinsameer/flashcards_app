@@ -12,6 +12,9 @@ import { useUser } from "@clerk/nextjs"
 import { useRouter } from "next/router"
 import { getDoc, writeBatch } from "firebase/firestore"
 import { Dialog, DialogContent, DialogFooter } from "@/components/ui/dialog"
+import Link from "next/link"
+
+import { SignedIn,UserButton } from "@clerk/nextjs"
 
 export default function Create() {
     const { isLoaded, isSignedIn, user } = useUser();
@@ -128,6 +131,20 @@ export default function Create() {
 //   }
 return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-background p-4">
+        <div className="flex flex-col h-full">
+            <header className="bg-primary text-primary-foreground py-4 px-6 flex items-center justify-between fixed top-0 left-0 right-0 z-10">
+                <div className="text-2xl font-bold">Flashcards</div>
+                <Link href="/dashboard" className="text-sm font-medium hover:underline underline-offset-4" prefetch={false}>
+                    Dashboard
+                </Link>
+                <SignedIn>
+                    <UserButton />
+                </SignedIn>
+            </header>
+            <div className="pt-16"> {/* Add padding to prevent content from being hidden behind the fixed header */}
+                {/* Your main content goes here */}
+            </div>
+        </div>
       <div className="max-w-6xl w-full space-y-6">
         <form onSubmit={handleSubmit} className="flex gap-2">
           <Input

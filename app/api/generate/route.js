@@ -19,6 +19,7 @@ Use simple and clear language to ensure accessibility and comprehension.
 For complex topics, break down information into smaller, digestible parts across multiple flashcards if necessary.
 Include mnemonic devices or analogies where applicable to aid memory retention.
 Ensure that each flashcard is self-contained, providing all necessary information without requiring external resources.
+Only generate a maximum of 10 flashcards
 
 Return in the following JSON format
 {
@@ -31,19 +32,28 @@ Return in the following JSON format
 }
 `
 
-export async function POST(req){
-    const openai = OpenAI()
-    const data = await req.text()
+export async function POST(req) {
+    const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+    const data = await req.text();
 
-    const completion = openai.chat.completion.create({
-        messages: [{role:'system', content: systemPrompt},
-            {role:'user', content: data},
-        ],
-        model: "gpt-4o-mini",
-        response_format: {type: 'json_object'}
-    })
+    try {
+        const completion = await openai.chat.completions.create({
+            messages: [
+                { role: 'system', content: systemPrompt },
+                { role: 'user', content: data },
+            ],
+            model: "gpt-4o-mini",
+            response_format: { type: 'json_object' }
+        });
 
-    const flashcards = JSON.parse[completion.choices[0].message.content]
-
-    return NextResponse.json(flashcards.flashcard)
+        if (completion.choices && completion.choices.length > 0) {
+            const flashcards = JSON.parse(completion.choices[0].message.content);
+            return NextResponse.json(flashcards.flashcards);
+        } else {
+            throw new Error("No response from OpenAI");
+        }
+    } catch (error) {
+        console.error("Error generating flashcards:", error);
+        return NextResponse.json({ error: "Failed to generate flashcards" }, { status: 500 });
+    }
 }

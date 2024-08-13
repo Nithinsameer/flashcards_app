@@ -10,33 +10,48 @@ import Link from "next/link"
 import { SignedIn, UserButton } from "@clerk/nextjs"
 import { useUser } from "@clerk/nextjs"
 import { useState, useEffect } from "react"
-import { collection, doc, getDoc, setDoc } from "firebase/firestore"
+import { collection, doc, getDoc, setDoc, getDocs } from "firebase/firestore"
 import { db } from "@/firebase"
 import { useRouter } from "next/navigation"
 
 export default function Dashboard() {
     const { isLoaded, isSignedIn, user } = useUser()
     const [flashcards, setFlashcards] = useState([])
+    const [filteredFlashcards, setFilteredFlashcards] = useState([])
     const [isLoading, setIsLoading] = useState(true)
+    const [searchTerm, setSearchTerm] = useState("")
+    const [error, setError] = useState(null)
     const router = useRouter()
 
     useEffect(() => {
         async function getFlashcards() {
             if (!user) return
             setIsLoading(true)
+            setError(null)
             try {
-                const docRef = doc(collection(db, 'users'), user.id)
-                const docSnap = await getDoc(docRef)
+                console.log("Fetching flashcards for user:", user.id)
+                const userDocRef = doc(db, 'users', user.id)
+                const docSnap = await getDoc(userDocRef)
                 if (docSnap.exists()) {
                     const collections = docSnap.data().flashcards || []
-                    setFlashcards(collections)
+                    console.log("Raw collections data:", collections)
+                    const updatedCollections = await Promise.all(collections.map(async (deck) => {
+                        const deckCollectionRef = collection(userDocRef, deck.name)
+                        const querySnapshot = await getDocs(deckCollectionRef)
+                        return { ...deck, cardCount: querySnapshot.size }
+                    }))
+                    console.log("Updated collections with card count:", updatedCollections)
+                    setFlashcards(updatedCollections)
+                    setFilteredFlashcards(updatedCollections)
                 } else {
-                    await setDoc(docRef, { flashcards: [] })
+                    console.log("No document found for user, creating new document")
+                    await setDoc(userDocRef, { flashcards: [] })
                     setFlashcards([])
+                    setFilteredFlashcards([])
                 }
             } catch (error) {
                 console.error("Error fetching flashcards:", error)
-                // Optionally, set an error state here
+                setError("Failed to load flashcards. Please try again.")
             } finally {
                 setIsLoading(false)
             }
@@ -46,6 +61,15 @@ export default function Dashboard() {
         }
     }, [user, isLoaded, isSignedIn])
 
+    useEffect(() => {
+        console.log("Filtering flashcards. Search term:", searchTerm)
+        const filtered = flashcards.filter(deck => 
+            deck.name.toLowerCase().includes(searchTerm.toLowerCase())
+        )
+        console.log("Filtered flashcards:", filtered)
+        setFilteredFlashcards(filtered)
+    }, [searchTerm, flashcards])
+
     if (!isLoaded || !isSignedIn) {
         return <div>Loading...</div>
     }
@@ -54,13 +78,23 @@ export default function Dashboard() {
         router.push(`/flashcard?id=${encodeURIComponent(name)}`)
     }
 
+    const handleSearch = (e) => {
+        setSearchTerm(e.target.value)
+    }
+
     return (
         <div className="flex flex-col h-full">
             <header className="bg-primary text-primary-foreground py-4 px-6 flex items-center justify-between">
                 <div className="text-2xl font-bold">Flashcards</div>
                 <div className="flex items-center gap-4">
                     <div className="relative w-64">
-                        <Input type="text" placeholder="Search decks..." className="pr-10" />
+                        <Input 
+                            type="text" 
+                            placeholder="Search decks..." 
+                            className="pr-10" 
+                            value={searchTerm}
+                            onChange={handleSearch}
+                        />
                         <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
                             <SearchIcon className="w-5 h-5 text-muted-foreground" />
                         </div>
@@ -79,10 +113,12 @@ export default function Dashboard() {
             <div className="flex-1 p-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
                 {isLoading ? (
                     <div>Loading flashcards...</div>
-                ) : flashcards.length === 0 ? (
+                ) : error ? (
+                    <div className="text-red-500">{error}</div>
+                ) : filteredFlashcards.length === 0 ? (
                     <div>No flashcards found. Create a new deck to get started!</div>
                 ) : (
-                    flashcards.map((deck, index) => (
+                    filteredFlashcards.map((deck, index) => (
                         <div
                             key={index}
                             onClick={() => handleCardClick(deck.name)}
@@ -97,7 +133,7 @@ export default function Dashboard() {
                                 </div>
                                 <div className="mt-auto flex items-center justify-between">
                                     <div className="text-sm font-medium">
-                                        {deck.cardCount || 0} cards
+                                        {deck.cardCount} cards
                                     </div>
                                     <ChevronRightIcon className="w-5 h-5 text-muted-foreground" />
                                 </div>

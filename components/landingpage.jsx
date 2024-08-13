@@ -33,6 +33,9 @@ export default function Component() {
             Pricing
           </Link> */}
           <SignedIn>
+            <Link href="/dashboard" className="text-sm font-medium hover:underline underline-offset-4" prefetch={false}>
+              Dashboard
+            </Link>
             <UserButton />
           </SignedIn>
           <SignedOut>
@@ -77,7 +80,7 @@ export default function Component() {
                 </div>
               </div>
               <img
-                src="/Flashcards.png"
+                src="/logo.png"
                 width="550"
                 height="550"
                 alt="Hero"

@@ -9,10 +9,11 @@ import { useState } from "react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { useUser } from "@clerk/nextjs"
-import { useRouter } from "next/router"
-import { getDoc, writeBatch } from "firebase/firestore"
+import { useRouter } from "next/navigation"
+import { doc, collection, setDoc, getDoc, writeBatch } from "firebase/firestore"
 import { Dialog, DialogContent, DialogFooter } from "@/components/ui/dialog"
 import Link from "next/link"
+import { db } from '@/firebase'
 
 import { SignedIn,UserButton } from "@clerk/nextjs"
 
@@ -24,7 +25,7 @@ export default function Create() {
     const [name, setName] = useState("");
     const [open, setOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
-    const router = useRouter
+    const router = useRouter()
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -84,8 +85,8 @@ export default function Create() {
                 return
             }
             else {
-                collection.push({name})
-                batch.set(userDocRef, {flashcards: collection}, {merge: true})
+                collections.push({name})
+                batch.set(userDocRef, {flashcards: collections}, {merge: true})
             }
         }
         else {
@@ -94,13 +95,13 @@ export default function Create() {
 
         const colRef = collection (userDocRef, name)
         flashcards.forEach((flashcard) => {
-            const cardDocREf = doc(colRef)
+            const cardDocRef = doc(colRef)
             batch.set(cardDocRef, flashcard)
         })
 
         await batch.commit()
         handleClose()
-        router.push('/flashcards')
+        router.push('/dashboard')
     }
 
 //   const [flashcards, setFlashcards] = useState([

@@ -8,7 +8,8 @@ const formatAmountForStripe = (amount) => {
 };
 
 export async function POST(req) {
-    const origin = req.headers.get('origin') || 'http://localhost:3000'; // Fallback for local development
+    const origin = req.headers.get('origin') || 'http://localhost:3000';
+    const { userId } = await req.json(); // Get the user ID from the request body
 
     const params = {
         mode: 'subscription',
@@ -31,6 +32,7 @@ export async function POST(req) {
         ],
         success_url: `${origin}/result?session_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${origin}/payment-status?status=canceled`,
+        client_reference_id: userId, // Add the user ID as a reference
     };
 
     try {
@@ -40,4 +42,21 @@ export async function POST(req) {
         console.error(err);
         return NextResponse.json({ error: 'Error creating checkout session' }, { status: 500 });
     }
+}
+
+export async function GET(req) {
+  const { searchParams } = new URL(req.url);
+  const sessionId = searchParams.get('session_id');
+
+  if (!sessionId) {
+      return NextResponse.json({ error: 'Missing session_id parameter' }, { status: 400 });
+  }
+
+  try {
+      const session = await stripe.checkout.sessions.retrieve(sessionId);
+      return NextResponse.json(session);
+  } catch (error) {
+      console.error('Error retrieving session:', error);
+      return NextResponse.json({ error: 'Error retrieving session' }, { status: 500 });
+  }
 }

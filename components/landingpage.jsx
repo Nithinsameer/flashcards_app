@@ -37,12 +37,8 @@ export default function Component() {
     setIsLoading(true);
     setMessage('');
 
-    if (!isLoaded) {
-      return;
-    }
-
-    if (!isSignedIn) {
-      router.push('/sign-in');
+    if (!isLoaded || !isSignedIn) {
+      router.push('/sign-in?redirect=payment');
       setIsLoading(false);
       return;
     }
@@ -53,7 +49,7 @@ export default function Component() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({}),
+        body: JSON.stringify({ userId: user.id }),
       });
 
       if (!response.ok) {
@@ -75,7 +71,6 @@ export default function Component() {
       setIsLoading(false);
     }
   };
-
 
   useEffect(() => {
     // Check if the user just signed in and was redirected here for payment

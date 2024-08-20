@@ -15,17 +15,21 @@ const ResultPage = () => {
 
   useEffect(() => {
     const fetchCheckoutSession = async () => {
-      if (!session_id) return;
+      if (!session_id) {
+        setError('No session ID provided');
+        setLoading(false);
+        return;
+      }
       try {
         const res = await fetch(`/api/checkout_sessions?session_id=${session_id}`);
-        const sessionData = await res.json();
-        if (res.ok) {
-          setSession(sessionData);
-        } else {
-          setError(sessionData.error);
+        if (!res.ok) {
+          throw new Error('Failed to fetch session');
         }
+        const sessionData = await res.json();
+        setSession(sessionData);
       } catch (err) {
         setError('An error occurred while retrieving the session.');
+        console.error(err);
       } finally {
         setLoading(false);
       }
@@ -42,12 +46,14 @@ const ResultPage = () => {
     );
   }
 
-  if (error) {
+  if (error || !session) {
     return (
       <div className="container mx-auto px-4 py-8 text-center">
         <Card>
           <CardHeader>
-            <CardTitle className="text-xl font-semibold text-red-600">{error}</CardTitle>
+            <CardTitle className="text-xl font-semibold text-red-600">
+              {error || 'Unable to retrieve session information'}
+            </CardTitle>
           </CardHeader>
         </Card>
       </div>
@@ -59,23 +65,17 @@ const ResultPage = () => {
       <Card>
         <CardHeader>
           <CardTitle className="text-2xl font-bold">
-            {session.payment_status === 'paid' ? 'Thank you for your purchase!' : 'Payment failed'}
+            {session.payment_status === 'paid' ? 'Thank you for your purchase!' : 'Payment status'}
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {session.payment_status === 'paid' ? (
-            <>
-              <p className="text-lg mb-4">Session ID: {session_id}</p>
-              <p className="mb-4">
-                We have received your payment. You will receive an email with the
-                order details shortly.
-              </p>
-            </>
-          ) : (
-            <p className="mb-4">
-              Your payment was not successful. Please try again.
-            </p>
-          )}
+          <p className="text-lg mb-4">Session ID: {session_id}</p>
+          <p className="mb-4">
+            {session.payment_status === 'paid' 
+              ? 'We have received your payment. You will receive an email with the order details shortly.'
+              : `Payment status: ${session.payment_status}`
+            }
+          </p>
           <Button asChild>
             <Link href="/dashboard">Go to Dashboard</Link>
           </Button>

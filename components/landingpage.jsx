@@ -5,8 +5,6 @@
  */
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card"
-import { Label } from "@/components/ui/label"
-import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import {
   ClerkProvider,
@@ -14,10 +12,78 @@ import {
   SignedOut,
   SignInButton,
   UserButton,
+  useUser
 } from "@clerk/nextjs";
-
+import getStripe from '../utils/get-stripe';
+import { useState, useEffect } from "react"
+import { useSearchParams, useRouter } from 'next/navigation';
 
 export default function Component() {
+  const [isLoading, setIsLoading] = useState(false);
+  const [message, setMessage] = useState('');
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const { isLoaded, isSignedIn, user } = useUser();
+
+  useEffect(() => {
+    const status = searchParams.get('status');
+    if (status === 'success') {
+      setMessage('Payment successful! Your pro subscription is now active.');
+    }
+  }, [searchParams]);
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setIsLoading(true);
+    setMessage('');
+
+    if (!isLoaded) {
+      return;
+    }
+
+    if (!isSignedIn) {
+      router.push('/sign-in');
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/checkout_sessions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({}),
+      });
+
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+
+      const { sessionId } = await response.json();
+      
+      const stripe = await getStripe();
+      const { error } = await stripe.redirectToCheckout({ sessionId });
+
+      if (error) {
+        throw error;
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      setMessage('An error occurred. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+
+  useEffect(() => {
+    // Check if the user just signed in and was redirected here for payment
+    if (isSignedIn && searchParams.get('redirect') === 'payment') {
+      handleSubmit(new Event('submit'));
+    }
+  }, [isSignedIn, searchParams]);
+
   return (
     <div className="flex flex-col min-h-screen">
       <header className="px-4 lg:px-6 h-14 flex items-center">
@@ -178,7 +244,9 @@ export default function Component() {
                     </ul>
                   </CardContent>
                   <CardFooter>
-                    <Button className="w-full">Sign Up</Button>
+                    <Button asChild className="w-full">
+                      <Link href="/sign-up">Sign Up</Link>
+                    </Button>
                   </CardFooter>
                 </Card>
                 <Card className="flex flex-col items-center">
@@ -187,7 +255,7 @@ export default function Component() {
                     <CardDescription>Unlock advanced features for serious learners.</CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4 text-center">
-                    <div className="text-4xl font-bold">$9/mo</div>
+                    <div className="text-4xl font-bold">$10/mo</div>
                     <ul className="space-y-2 text-left">
                       <li className="flex items-center gap-2">
                         <CheckIcon className="h-4 w-4 text-green-500" />
@@ -204,43 +272,15 @@ export default function Component() {
                     </ul>
                   </CardContent>
                   <CardFooter>
-                    <Button className="w-full">Get Pro</Button>
+                    <Button 
+                      className="w-full" 
+                      onClick={handleSubmit}
+                      disabled={isLoading}
+                    >
+                      {isLoading ? 'Processing...' : 'Get Pro'}
+                    </Button>
                   </CardFooter>
                 </Card>
-                {/* <Card className="flex flex-col items-center">
-                  <CardHeader>
-                    <CardTitle>Team</CardTitle>
-                    <CardDescription>Collaborate with your team and boost productivity.</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4 text-center">
-                    <div className="text-4xl font-bold">$99/mo</div>
-                    <ul className="space-y-2 text-left">
-                      <li className="flex items-center gap-2">
-                        <CheckIcon className="h-4 w-4 text-green-500" />
-                        Unlimited flashcards
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <CheckIcon className="h-4 w-4 text-green-500" />
-                        Advanced study tools
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <CheckIcon className="h-4 w-4 text-green-500" />
-                        Detailed analytics
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <CheckIcon className="h-4 w-4 text-green-500" />
-                        Team collaboration
-                      </li>
-                      <li className="flex items-center gap-2">
-                        <CheckIcon className="h-4 w-4 text-green-500" />
-                        Custom branding
-                      </li>
-                    </ul>
-                  </CardContent>
-                  <CardFooter>
-                    <Button className="w-full">Get Team</Button>
-                  </CardFooter>
-                </Card> */}
               </div>
             </div>
           </div>
